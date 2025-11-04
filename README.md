@@ -55,7 +55,7 @@ Após criar o PAT token, você precisa autorizar o Single Sign-On (SSO) para a o
 Após criar e autorizar o token, configure-o no seu ambiente local:
 
 ```bash
-npm config set @tbongiovani:registry https://npm.pkg.github.com
+npm config set @tbongiovani-msft:registry https://npm.pkg.github.com
 npm config set //npm.pkg.github.com/:_authToken "TokenGeradoNoPassoAnterior"
 ```
 
