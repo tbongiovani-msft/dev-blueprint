@@ -46,7 +46,6 @@
         "url": "https://github.com/tbongiovani-msft/dev-blueprint/issues"
     },
     "publishConfig": {
-        "registry": "https://npm.pkg.github.com",
         "access": "public"
     }
 }
