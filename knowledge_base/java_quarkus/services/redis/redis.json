@@ -1,0 +1,35 @@
+{
+    "tools": [
+        {
+            "id": "implementar_redis",
+            "title": "Implementar Redis Cache no Projeto Quarkus",
+            "description": "Instruções detalhadas para implementar o Redis Cache no projeto Quarkus.",
+            "content": [
+                {
+                    "type": "file",
+                    "path": "java_quarkus/services/redis/configure_redis.prompt"
+                }
+            ]
+        }
+    ],
+    "resources": [],
+    "prompts": [
+        {
+            "id": "implementar_redis",
+            "title": "Implementar Redis Cache no Projeto Quarkus",
+            "description": "Como implementar o Redis Cache no projeto Quarkus.",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": "Forneça um guia passo a passo para implementar o Redis Cache em um projeto Quarkus. Inclua exemplos de código, configuração necessária e melhores práticas."
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_tools": [],
+    "custom_resources": [],
+    "custom_prompts": []
+}

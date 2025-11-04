@@ -1,0 +1,35 @@
+{
+    "tools": [
+        {
+            "id": "api_client_creation_guidelines",
+            "title": "API Client Creation Guidelines [Java Quarkus]",
+            "description": "Comprehensive guidelines for creating standardized API clients in Java Quarkus projects. Covers auto-detection of base package structure, proper directory organization with backends folder structure, implementation of REST client interfaces with JAX-RS annotations, wrapper classes for error handling and null safety, DTO models with Jackson JSON mapping, OIDC authentication setup for service-to-service communication, required Maven dependencies (REST client, OIDC filter, Jackson, Lombok), standardized naming conventions for classes and packages, configuration management with environment variables, best practices and documentation standards.",
+            "content": [
+                {
+                    "type": "file",
+                    "path": "java_quarkus/api_client_creation/instructions.md"
+                }
+            ]
+        }
+    ],
+    "resources": [],
+    "prompts": [
+        {
+            "id": "create_api_client_with_conventions",
+            "title": "Create API Client with Naming Conventions",
+            "description": "Generates a complete API client following both API client creation guidelines and mandatory naming conventions. Always use both naming_conventions_guidelines and api_client_creation_guidelines tools before generating code.",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": "You must create an API client for a Java Quarkus project. MANDATORY STEPS:\n\n1. FIRST: Call the 'naming_conventions_guidelines' tool to understand the bilingual naming conventions (English for programming terms, Portuguese for business terms)\n2. SECOND: Call the 'api_client_creation_guidelines' tool to understand the API client structure and requirements\n3. THIRD: Generate code that follows BOTH sets of guidelines\n\nWhen generating:\n- Use Portuguese for business terms (e.g., 'ecommerce' → 'EcommerceService')\n- Use English for technical terms (Repository, Service, Client)\n- Follow the DTO field naming rules (business fields in Portuguese)\n- Apply the API client structure patterns\n\nPlease specify:\n- Service name (use Portuguese for business domains)\n- Base URL of the API\n- Any specific endpoints or entities needed"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_tools":[],
+    "custom_resources":[],
+    "custom_prompts":[]
+}

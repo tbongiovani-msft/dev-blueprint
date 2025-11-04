@@ -1,0 +1,99 @@
+# Ação
+
+Utilize esse passo a passo e atualize o meu SETTINGS.md de documentação
+
+## Prompt para Atualização da Documentação de Configurações
+
+Este arquivo contém o prompt e instruções para atualizar automaticamente a documentação `SETTINGS.md` sempre que houver mudanças nos arquivos de configuração da aplicação.
+
+## Como Usar
+
+1. Certifique-se de que os arquivos de configuração estão atualizados
+2. Anexe os seguintes arquivos ao prompt:
+   - `src/main/resources/application.properties`
+   - `src/main/resources/application-prod.properties`
+   - `src/main/resources/application-test.properties`
+   - `.env.example`
+   - `docs/SETTINGS.md` (arquivo atual)
+3. Use o prompt abaixo
+
+## Prompt para IA
+
+```
+Analise os arquivos de configuração anexados (application.properties, application-prod.properties, application-test.properties, .env.example) e ajuste a documentação SETTINGS.md para refletir corretamente todas as configurações existentes.
+
+Certifique-se de:
+
+1. **Incluir todas as configurações** presentes nos arquivos properties
+2. **Documentar todas as variáveis de ambiente** usadas nos arquivos
+3. **Especificar corretamente a obrigatoriedade** de cada configuração
+4. **Incluir exemplos de valores** quando apropriado
+5. **Manter a estrutura existente** da documentação
+6. **Adicionar seções novas** se necessário para configurações não documentadas
+7. **Atualizar as diferenças entre ambientes** baseado nos diferentes arquivos properties
+8. **Verificar se o arquivo .env.example** está alinhado com as variáveis documentadas
+
+Áreas específicas para verificar:
+- Configurações de desenvolvimento (Dev Services, Live Reload)
+- Configurações de aplicação (environment)
+- Configurações OpenAPI
+- Configurações Redis (hosts, password)
+- Configurações OpenTelemetry (endpoint, métricas, logs, instrumentação)
+- Configurações TLS
+- Configurações CORS
+- Configurações de autenticação OIDC
+- Variáveis de ambiente obrigatórias vs opcionais
+- Diferenças entre ambientes (local, prod, test)
+
+Mantenha a documentação clara, organizada e útil para desenvolvedores que precisam configurar a aplicação.
+```
+
+## Arquivos que Devem Ser Anexados
+
+### Arquivos de Configuração Principal
+- `/src/main/resources/application.properties` - Configurações locais/desenvolvimento
+- `/src/main/resources/application-prod.properties` - Configurações de produção
+- `/src/main/resources/application-test.properties` - Configurações de teste
+
+### Arquivos de Exemplo e Documentação
+- `/.env.example` - Template de variáveis de ambiente
+- `/docs/SETTINGS.md` - Documentação atual (para contexto)
+
+## Checklist de Validação
+
+Após a atualização, verifique se:
+
+- [ ] Todas as propriedades dos arquivos `.properties` estão documentadas
+- [ ] Todas as variáveis de ambiente estão listadas nas tabelas
+- [ ] A obrigatoriedade está correta (Sim/Não)
+- [ ] Os tipos de dados estão corretos (string, boolean, etc.)
+- [ ] As descrições são claras e úteis
+- [ ] Os exemplos de valores são apropriados
+- [ ] As diferenças entre ambientes estão atualizadas
+- [ ] O arquivo `.env.example` está alinhado com a documentação
+- [ ] A estrutura da documentação permanece organizada
+
+## Exemplo de Uso
+
+1. **Faça alterações** nos arquivos de configuração conforme necessário
+2. **Anexe os 5 arquivos** listados acima em uma conversa com IA
+3. **Cole o prompt** da seção "Prompt para IA"
+4. **Revise as alterações** sugeridas antes de aplicar
+5. **Execute o checklist** de validação
+
+## Notas Importantes
+
+- **Sempre revisar** as configurações de segurança antes de aplicar em produção
+- **Verificar** se variáveis sensíveis (senhas, secrets) não estão expostas em exemplos
+- **Manter** comentários sobre configurações específicas de ambiente
+- **Atualizar** a data da última modificação se necessário
+
+## Histórico de Atualizações
+
+| Data | Responsável | Descrição da Alteração |
+|------|-------------|------------------------|
+| 2025-08-04 | Sistema | Criação do template de prompt para atualizações automáticas |
+
+---
+
+**Dica**: Salve este arquivo no controle de versão para que toda a equipe possa usar o mesmo processo padronizado para atualizar a documentação.

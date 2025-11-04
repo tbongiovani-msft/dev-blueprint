@@ -1,0 +1,35 @@
+{
+    "tools": [
+        {
+            "id": "java_code_generation_enforcer",
+            "title": "Java Code Generation Enforcer - MANDATORY FOR ALL CODE",
+            "description": "CRITICAL: This tool MUST be called before generating ANY Java code. It enforces that all naming conventions, patterns, and project standards are applied. This includes automatic invocation of naming_conventions_guidelines and relevant pattern guidelines. USE THIS TOOL FIRST for any: class creation, method generation, DTO creation, entity definition, service implementation, controller creation, or any Java code generation.",
+            "content": [
+                {
+                    "type": "file",
+                    "path": "java_quarkus/code_generation_enforcer/instructions.md"
+                }
+            ]
+        }
+    ],
+    "resources": [],
+    "prompts": [
+        {
+            "id": "enforce_java_standards",
+            "title": "Enforce Java Standards for Code Generation",
+            "description": "Mandatory prompt that ensures all Java code generation follows project standards and naming conventions",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": "MANDATORY CODE GENERATION PROTOCOL:\n\nBefore generating ANY Java code, you MUST:\n\n1. ALWAYS call 'naming_conventions_guidelines' tool first\n2. Call relevant pattern tool (e.g., 'api_client_creation_guidelines' for API clients)\n3. Follow the bilingual naming convention:\n   - English for programming terms (get, set, create, Service, Repository, Controller)\n   - Portuguese for business terms (usuario, produto, pedido, cliente)\n4. Ensure ALL class fields use Portuguese business terms\n5. Apply proper patterns and structure\n\nREQUIRED FIELD NAMING EXAMPLES:\n- product_id → produtoId\n- customer_name → nomeCliente  \n- order_status → statusPedido\n- final_price → precoFinal\n\nFAILURE TO FOLLOW THESE STEPS WILL RESULT IN NON-COMPLIANT CODE.\n\nAfter calling the required tools, generate code that strictly adheres to all guidelines."
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_tools": [],
+    "custom_resources": [],
+    "custom_prompts": []
+}

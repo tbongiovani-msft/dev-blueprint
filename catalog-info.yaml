@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dev-blueprint
+  description: Lib de referencia para criaçao e utilização de prompts dentro do ecossistema de desenvolvimento - Squad Refatoração
+  annotations:
+    argocd/app-selector: 'appName=dev-blueprint'
+    backstage.io/kubernetes-id: dev-blueprint
+    github.com/project-slug: tbongiovani-msft/dev-blueprint
+    backstage.io/source-location: url:https://github.com/tbongiovani-msft/dev-blueprint
+    backstage.io/techdocs-ref: url:https://github.com/tbongiovani-msft/dev-blueprint/tree/main
+    backstage.io/managed-by-location: url:github.com/tbongiovani-msft/dev-blueprint
+    sonarqube.org/project-key: sonarqube-produtos4/dev-blueprint
+    feedback/type: 'MAIL'
+    feedback/email-to: 'cxnde02@corp.caixa.gov.br'
+spec:
+  type: docs
+  lifecycle: estavel
+  owner: group:default/g_az_box_silce
+  system: SILCE

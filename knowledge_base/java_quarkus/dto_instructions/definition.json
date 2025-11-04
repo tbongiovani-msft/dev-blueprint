@@ -1,0 +1,35 @@
+{
+    "tools": [
+        {
+            "id": "dto_creation_guidelines",
+            "title": "DTO Creation Guidelines [Java Quarkus]",
+            "description": "Comprehensive guidelines and best practices for creating Data Transfer Objects (DTOs) in Java Quarkus projects, including JSON property annotations, validation, and Lombok integration.",
+            "content": [
+                {
+                    "type": "file",
+                    "path": "java_quarkus/dto_instructions/instructions.md"
+                }
+            ]
+        }
+    ],
+    "resources": [],
+    "prompts": [
+        {
+            "id": "create_java_quarkus_dto",
+            "title": "Create Java Quarkus DTO",
+            "description": "Generate a Data Transfer Object (DTO) class for Java Quarkus following best practices including JsonProperty annotations, validation, and Lombok integration when available.",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": "Create a Java Quarkus DTO class that follows these requirements:\n\n1. Always use @JsonProperty annotation for all fields\n2. Include appropriate validation annotations (@NotNull, @NotBlank, @Email, etc.)\n3. No domain/business logic - only data fields, validation, and simple utility methods\n4. Can include utility methods like factory methods (create(), of()), conversion methods (toEntity(), fromEntity()), or builder pattern\n5. If using Lombok: add @Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor at class level\n6. If not using Lombok: manually implement constructors, getters, and setters\n7. Follow proper naming conventions (PascalCase for class, camelCase for fields)\n8. Use proper package structure (com.company.project.dto)\n\nPlease specify:\n- DTO class name\n- Fields with their types\n- Any specific validation requirements\n- Whether the project uses Lombok or not\n- Any utility methods needed (factory, conversion, etc.)\n- Any specific JSON property naming conventions (snake_case, kebab-case, etc.)"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_tools": [],
+    "custom_resources": [],
+    "custom_prompts": []
+}

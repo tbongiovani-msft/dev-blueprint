@@ -1,0 +1,16 @@
+{
+    "servers": {
+        "embedded-stdio": {
+            "type": "stdio",
+            "command": "npm",
+            "args": [
+                "run",
+                "start",
+                "--",
+                "--mode",
+                "stdio"
+            ]
+        }
+    },
+    "inputs": []
+}

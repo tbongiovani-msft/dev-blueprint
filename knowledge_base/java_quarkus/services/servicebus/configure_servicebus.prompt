@@ -1,0 +1,545 @@
+# Service Bus Configuration Guide for Quarkus Projects
+
+This guide provides a comprehensive approach to configure Azure Service Bus in a Quarkus project based on the silce-compra implementation.
+
+## 1. Dependencies
+
+Add the following dependency to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.azure</groupId>
+    <artifactId>azure-messaging-servicebus</artifactId>
+    <version>7.13.3</version>
+</dependency>
+```
+
+## 2. Configuration Structure
+
+Create configuration interfaces using Quarkus ConfigMapping:
+
+### Main Configuration Interface
+```java
+@ConfigMapping(prefix = "servicebus", namingStrategy = ConfigMapping.NamingStrategy.VERBATIM)
+public interface ServiceBusConfiguration {
+    @WithParentName
+    public Map<String, ServiceBusConfigurationInstance> instances();
+}
+```
+
+### Instance Configuration
+```java
+public interface ServiceBusConfigurationInstance {
+    String connectionString();
+    Map<String, ServiceBusConfigurationInstanceTopic> topics();       
+    Map<String, ServiceBusConfigurationInstanceQueue> queues();
+}
+```
+
+### Topic Configuration
+```java
+public interface ServiceBusConfigurationInstanceTopic {
+    String name();
+    Map<String, ServiceBusConfigurationInstanceSubscription> subscriptions();
+}
+```
+
+### Queue Configuration
+```java
+public interface ServiceBusConfigurationInstanceQueue {
+    String name();
+}
+```
+
+### Subscription Configuration
+```java
+public interface ServiceBusConfigurationInstanceSubscription {
+    String name();
+}
+```
+
+## 3. Application Properties Configuration
+
+Configure Service Bus instances in `application.properties`:
+
+```properties
+# Service Bus Configuration
+## Example Instance: my-servicebus
+servicebus."my-servicebus".connectionString=Endpoint=sb://${SERVICE_BUS_HOST}/;SharedAccessKeyName=${SERVICE_BUS_USERNAME};SharedAccessKey=${SERVICE_BUS_PASSWORD}
+
+## Queue Configuration
+servicebus."my-servicebus".queues."my-queue".name=${SERVICE_BUS_MY_QUEUE:my-queue}
+servicebus."my-servicebus".queues."another-queue".name=${SERVICE_BUS_ANOTHER_QUEUE:another-queue}
+
+## Topic and Subscription Configuration (when using topics)
+servicebus."my-servicebus".topics."my-topic".name=my-topic-name
+servicebus."my-servicebus".topics."my-topic".subscriptions."my-subscription".name=my-subscription-name
+```
+
+## 4. Core Infrastructure Components
+
+### Factory Classes
+
+#### Service Bus Client Builder Factory
+```java
+@ApplicationScoped
+public class ServiceBusClientBuilderFactory {
+    public ServiceBusClientBuilder create() {
+        return new ServiceBusClientBuilder();
+    }
+}
+```
+
+#### Service Bus Sender Client Factory
+```java
+@ApplicationScoped
+public class ServiceBusSenderClientFactory {
+    @Inject
+    ServiceBusClientBuilderFactory serviceBusClientBuilderFactory;
+
+    public ServiceBusSenderClient createTopic(String instanceKey, String connectionString, String topicName) {
+        var clientBuilder = serviceBusClientBuilderFactory.create();
+        return clientBuilder
+                .connectionString(connectionString)
+                .sender()
+                .topicName(topicName)
+                .buildClient();
+    }
+
+    public ServiceBusSenderClient createQueue(String instanceKey, String connectionString, String queueName) {
+        var clientBuilder = serviceBusClientBuilderFactory.create();
+        return clientBuilder
+                .connectionString(connectionString)
+                .sender()
+                .queueName(queueName)
+                .buildClient();
+    }
+}
+```
+
+### Sender Components
+
+#### Service Bus Sender Interface
+```java
+public interface ServiceBusSenderInterface {
+    public void sendMessage(String instanceName, String topicName, ServiceBusTracedMessage message);
+}
+```
+
+#### Service Bus Sender Implementation
+```java
+@ApplicationScoped
+public class ServiceBusSender implements ServiceBusSenderInterface {
+    @Inject
+    private ServiceBusSenderClientManager serviceBusSenderClientManager;
+
+    @Inject
+    private ServiceBusSenderMessageBuilder serviceBusSenderMessageBuilder;
+    
+    public void sendMessage(String instanceName, String topicName, ServiceBusTracedMessage message) {
+        var sbusMessage = serviceBusSenderMessageBuilder.createMessage(message);
+        var senderClient = serviceBusSenderClientManager.getClient(instanceName, topicName);
+        senderClient.sendMessage(sbusMessage);
+    }
+}
+```
+
+#### Service Bus Sender Client Manager
+```java
+@Startup
+@ApplicationScoped
+public class ServiceBusSenderClientManager {
+    private ServiceBusConfiguration serviceBusConfiguration;
+    private ServiceBusSenderClientFactory serviceBusSenderClientFactory;
+    private Map<String, ServiceBusSenderClient> _clients = new HashMap<>();
+
+    @Inject
+    public ServiceBusSenderClientManager(ServiceBusConfiguration serviceBusConfiguration,
+            ServiceBusSenderClientFactory serviceBusSenderClientFactory) {
+        this.serviceBusConfiguration = serviceBusConfiguration;
+        this.serviceBusSenderClientFactory = serviceBusSenderClientFactory;
+    }
+
+    @PostConstruct
+    public void initialize() {
+        for (var instance : serviceBusConfiguration.instances().entrySet()) {
+            for (var topic : instance.getValue().topics().entrySet()) {
+                var senderClient = serviceBusSenderClientFactory.createTopic(
+                    instance.getKey(), 
+                    instance.getValue().connectionString(), 
+                    topic.getValue().name()
+                );
+                _clients.put(getClientKey(instance.getKey(), topic.getKey()), senderClient);
+            }
+
+            for (var queue : instance.getValue().queues().entrySet()) {
+                var senderClient = serviceBusSenderClientFactory.createQueue(
+                    instance.getKey(), 
+                    instance.getValue().connectionString(), 
+                    queue.getValue().name()
+                );
+                _clients.put(getClientKey(instance.getKey(), queue.getKey()), senderClient);
+            }
+        }
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        for (ServiceBusSenderClient client : _clients.values()) {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    public ServiceBusSenderClient getClient(String instanceName, String topicName) {
+        return _clients.get(getClientKey(instanceName, topicName));
+    }
+
+    public String getClientKey(String instanceName, String topicName) {
+        return instanceName + "-" + topicName;
+    }
+}
+```
+
+#### Service Bus Message Builder
+```java
+@ApplicationScoped
+public class ServiceBusSenderMessageBuilder {
+    private final ObjectMapper objectMapper;
+
+    public ServiceBusSenderMessageBuilder() {
+        this.objectMapper = new ObjectMapper();
+    }
+
+    public ServiceBusMessage createMessage(ServiceBusTracedMessage message) {
+        try {
+            message.setSpanId(Span.current().getSpanContext().getSpanId());
+            message.setTraceId(Span.current().getSpanContext().getTraceId());
+            var json = objectMapper.writeValueAsString(message);
+            return new ServiceBusMessage(json);
+        } catch (JsonProcessingException e) {
+            Log.errorf("Failed to serialize message to JSON: %s", e.getMessage());
+            throw new RuntimeException("Failed to serialize message to JSON", e);
+        }
+    }
+}
+```
+
+### Receiver Components
+
+#### Service Bus Receiver Interface
+```java
+public interface ServiceBusReceiverInterface {
+    public ServiceBusProcessorClient createReceiver(String instanceId,
+            String topicName,
+            String subscriptionName,
+            Consumer<ServiceBusReceivedMessageContext> processMessage,
+            Consumer<ServiceBusErrorContext> processError);
+
+    public ServiceBusProcessorClient createReceiver(String instanceId,
+            String queueId,
+            Consumer<ServiceBusReceivedMessageContext> processMessage,
+            Consumer<ServiceBusErrorContext> processError);
+}
+```
+
+#### Service Bus Receiver Implementation
+```java
+@ApplicationScoped
+public class ServiceBusReceiver implements ServiceBusReceiverInterface {
+    private final ServiceBusConfiguration serviceBusConfiguration;
+    private final ServiceBusReceiverProcessor serviceBusReceiverProcessor;
+    private final ServiceBusClientBuilderFactory serviceBusClientBuilderFactory;
+
+    @Inject
+    public ServiceBusReceiver(ServiceBusConfiguration serviceBusConfiguration,
+            ServiceBusReceiverProcessor serviceBusReceiverProcessor,
+            ServiceBusClientBuilderFactory serviceBusClientBuilderFactory) {
+        this.serviceBusConfiguration = serviceBusConfiguration;
+        this.serviceBusReceiverProcessor = serviceBusReceiverProcessor;
+        this.serviceBusClientBuilderFactory = serviceBusClientBuilderFactory;
+    }
+
+    public ServiceBusProcessorClient createReceiver(String instanceId,
+            String topicId,
+            String subscriptionId,
+            Consumer<ServiceBusReceivedMessageContext> processMessageCallback,
+            Consumer<ServiceBusErrorContext> processErrorCallback) {
+
+        var instance = getInstance(instanceId);
+        var connectionString = instance.connectionString();
+        var topic = getTopic(instance, topicId);
+        var subscription = getSubscription(topic, subscriptionId);
+        
+        var builder = serviceBusClientBuilderFactory.create()
+                .connectionString(connectionString)
+                .processor()
+                .topicName(topic.name())
+                .subscriptionName(subscription.name());
+
+        if (processErrorCallback != null) {
+            builder = builder.processError(processErrorCallback);
+        }
+
+        if (processMessageCallback != null) {
+            builder = builder.processMessage(serviceBusReceiverProcessor.processMessage(processMessageCallback));
+        }
+
+        return builder.buildProcessorClient();
+    }
+
+    public ServiceBusProcessorClient createReceiver(String instanceId,
+            String queueId,
+            Consumer<ServiceBusReceivedMessageContext> processMessageCallback,
+            Consumer<ServiceBusErrorContext> processErrorCallback) {
+
+        var instance = getInstance(instanceId);
+        var connectionString = instance.connectionString();
+        var queueName = getQueue(instance, queueId).name();
+        
+        var builder = serviceBusClientBuilderFactory.create()
+                .connectionString(connectionString)
+                .processor()
+                .queueName(queueName);
+
+        if (processErrorCallback != null) {
+            builder = builder.processError(processErrorCallback);
+        }
+
+        if (processMessageCallback != null) {
+            builder = builder.processMessage(serviceBusReceiverProcessor.processMessage(processMessageCallback));
+        }
+
+        return builder.buildProcessorClient();
+    }
+
+    // Helper methods for configuration retrieval
+    private ServiceBusConfigurationInstance getInstance(String instanceId) {
+        var instances = serviceBusConfiguration.instances();
+        if (!instances.containsKey(instanceId)) {
+            throw new IllegalArgumentException("Instance ID not found: " + instanceId);
+        }
+        return instances.get(instanceId);
+    }
+
+    private ServiceBusConfigurationInstanceQueue getQueue(ServiceBusConfigurationInstance instance, String queueId) {
+        var queues = instance.queues();
+        if (!queues.containsKey(queueId)) {
+            throw new IllegalArgumentException("Queue ID not found: " + queueId);
+        }
+        return queues.get(queueId);
+    }
+
+    private ServiceBusConfigurationInstanceTopic getTopic(ServiceBusConfigurationInstance instance, String topicId){
+        var topics = instance.topics();
+        if (!topics.containsKey(topicId)) {
+            throw new IllegalArgumentException("Topic ID not found: " + topicId);
+        }
+        return topics.get(topicId);
+    }
+
+    private ServiceBusConfigurationInstanceSubscription getSubscription(ServiceBusConfigurationInstanceTopic topic, String subscriptionId){
+        var subscriptions = topic.subscriptions();
+        if (!subscriptions.containsKey(subscriptionId)) {
+            throw new IllegalArgumentException("Subscription ID not found: " + subscriptionId);
+        }
+        return subscriptions.get(subscriptionId);
+    }
+}
+```
+
+#### Service Bus Receiver Processor
+```java
+@ApplicationScoped
+public class ServiceBusReceiverProcessor {
+    @Inject
+    ServiceBusReceiverProcessorTrace serviceBusReceiverProcessorTrace;
+
+    public Consumer<ServiceBusReceivedMessageContext> processMessage(Consumer<ServiceBusReceivedMessageContext> processMessageFunction) {
+        return messageContext -> {
+            try (var traceScope = serviceBusReceiverProcessorTrace.createSpan(messageContext)) {  
+                processMessageFunction.accept(messageContext);
+            }
+        };
+    }
+}
+```
+
+#### Service Bus Processor Manager
+```java
+@ApplicationScoped
+public class ServiceBusProcessorManager {
+    private List<ServiceBusProcessorClient> processorClients = new ArrayList<>();
+
+    @Inject
+    private ServiceBusReceiverInterface serviceBusReceiver;
+
+    public void start(String instanceId,
+            String queueId,
+            Consumer<ServiceBusReceivedMessageContext> processMessage,
+            Consumer<ServiceBusErrorContext> processError) {
+        Log.infof("[%s] Initializing Azure Service Bus Consumer", queueId);
+
+        var processorClient = serviceBusReceiver.createReceiver(instanceId, queueId, processMessage, processError);
+        processorClient.start();
+        processorClients.add(processorClient);
+    }
+
+    public void start(String instanceId,
+            String topicName,
+            String subscriptionName,
+            Consumer<ServiceBusReceivedMessageContext> processMessage,
+            Consumer<ServiceBusErrorContext> processError) {
+        Log.infof("[%s/%s] Initializing Azure Service Bus Consumer", topicName, subscriptionName);
+
+        var processorClient = serviceBusReceiver.createReceiver(instanceId, topicName, subscriptionName, processMessage, processError);
+        processorClient.start();
+        processorClients.add(processorClient);
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        for (ServiceBusProcessorClient client : processorClients) {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+}
+```
+
+## 5. Message Models
+
+### Base Traced Message Class
+```java
+@Getter
+@Setter
+public class ServiceBusTracedMessage {
+    @JsonProperty("Ot-tracer-spanid")
+    String SpanId;
+    
+    @JsonProperty("Ot-tracer-traceid")
+    String TraceId;
+}
+```
+
+### Example Message Model
+```java
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class MyMessage extends ServiceBusTracedMessage {
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("message_type")
+    private String messageType;
+
+    @JsonProperty("data")
+    private String data;
+
+    // Add other message properties as needed
+}
+```
+
+## 6. Usage Examples
+
+### Producer (Sender) Example
+```java
+@ApplicationScoped
+public class MyMessageProducer {
+    String INSTANCE_ID = "my-servicebus";
+    String QUEUE_ID = "my-queue";
+
+    @Inject
+    ServiceBusSenderInterface serviceBusSender;
+
+    @WithSpan(value = "queue.producer.my.message")
+    public void publish(MyMessage message) {
+        serviceBusSender.sendMessage(INSTANCE_ID, QUEUE_ID, message);
+    }
+}
+```
+
+### Consumer (Receiver) Example
+```java
+@Startup
+@ApplicationScoped
+public class MyMessageConsumer {
+    String INSTANCE_ID = "my-servicebus";
+    String QUEUE_ID = "my-queue";
+
+    @Inject
+    private ServiceBusProcessorManager serviceBusProcessorManager;
+
+    @PostConstruct
+    public void initialize() {
+        serviceBusProcessorManager.start(INSTANCE_ID, QUEUE_ID, this::processMessage, this::processError);
+    }
+
+    @WithSpan("queue.consumer.my.message")
+    @Transactional
+    public void processMessage(ServiceBusReceivedMessageContext context) {
+        var contextMessage = context.getMessage();
+        Log.infof("[%s] Processing message: %s", QUEUE_ID, contextMessage.getSequenceNumber());
+        
+        // Process your message here
+        // You can deserialize the message body and handle business logic
+    }
+
+    @WithSpan()
+    public void processError(ServiceBusErrorContext errorContext) {
+        Log.errorf(errorContext.getException(), "[%s] Error occurred while processing message", QUEUE_ID);
+    }
+}
+```
+
+## 7. Environment Variables
+
+Configure the following environment variables for different environments:
+
+```bash
+# Service Bus Configuration
+SERVICE_BUS_HOST=your-servicebus-namespace.servicebus.windows.net
+SERVICE_BUS_USERNAME=your-shared-access-key-name
+SERVICE_BUS_PASSWORD=your-shared-access-key
+
+# Queue Names (optional, defaults provided in properties)
+SERVICE_BUS_MY_QUEUE=my-queue
+SERVICE_BUS_ANOTHER_QUEUE=another-queue
+```
+
+## 8. Best Practices
+
+1. **Configuration Management**: Use environment variables for connection strings and sensitive information
+2. **Error Handling**: Always implement error handling callbacks for message processing
+3. **Tracing**: Integrate OpenTelemetry tracing for message tracking across services
+4. **Resource Management**: Ensure proper cleanup of Service Bus clients using @PreDestroy
+5. **Transaction Management**: Use @Transactional for message processing to ensure data consistency
+6. **Message Serialization**: Use Jackson for JSON serialization with proper annotations
+7. **Client Management**: Initialize clients at startup (@Startup, @PostConstruct) for better performance
+8. **Instance Isolation**: Use different instance configurations for different environments or purposes
+
+## 9. Package Structure
+
+Organize your Service Bus code following this structure:
+```
+src/main/java/com/yourcompany/yourproject/
+├── infrastructure/
+│   └── servicebus/
+│       ├── configuration/          # Configuration interfaces
+│       ├── impl/
+│       │   ├── factory/           # Factory classes
+│       │   ├── sender/            # Sender implementations
+│       │   └── receiver/          # Receiver implementations
+│       ├── ServiceBusSenderInterface.java
+│       └── ServiceBusReceiverInterface.java
+└── messaging/
+    ├── consumer/                  # Message consumers
+    ├── producer/                  # Message producers
+    └── model/                     # Message models
+```
+
+This structure provides a complete, production-ready Service Bus implementation that supports both queues and topics with proper error handling, tracing, and configuration management.
