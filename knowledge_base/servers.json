@@ -12,12 +12,5 @@
             "java_quarkus/naming_conventions/definition.json",
             "java_quarkus/api_client_creation/definition.json"
         ]
-    },
-    {
-        "name": "silce",
-        "path": "silce",
-        "features": [
-            "silce/silce_carrinho.json"
-        ]
     }
 ]

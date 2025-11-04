@@ -1,5 +1,5 @@
 {
-    "name": "@caixagithub/dev-blueprint",
+    "name": "@tbongiovani/dev-blueprint",
     "version": "1.2.2",
     "description": "",
     "type": "module",
@@ -37,7 +37,7 @@
         "express",
         "enterprise-patterns"
     ],
-    "author": "Paulo Baima <paulosergiob@microsoft.com>",
+    "author": "Paulo Baima <paulosergiob@microsoft.com>, Thiago Bongiovani <tbongiovani@microsoft.com>",
     "license": "MIT",
     "repository": {
         "type": "git",
