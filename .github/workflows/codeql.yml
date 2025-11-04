@@ -38,7 +38,7 @@ jobs:
       with:
         node-version: '18'
         registry-url: 'https://npm.pkg.github.com'
-        scope: '@caixagithub'
+        scope: '@tbongiovani'
 
     # Initialize the CodeQL tools for scanning
     - name: Initialize CodeQL

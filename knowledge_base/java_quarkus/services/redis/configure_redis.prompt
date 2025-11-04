@@ -86,7 +86,7 @@ Se a solicitação for para **implementar cache** em features específicas, aí 
 Crie a classe genérica `RemoteCache` que será reutilizada por todos os caches:
 
 ```java
-package br.gov.caixa.[seu-projeto].repository.cache;
+package br.gov.[seu-projeto].repository.cache;
 
 import java.util.Map;
 import java.util.Set;
@@ -94,7 +94,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.gov.caixa.[seu-projeto].logging.Logger;
+import br.gov.[seu-projeto].logging.Logger;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.ValueCommands;
 import jakarta.annotation.Nullable;
@@ -184,11 +184,11 @@ Para cada entidade que você deseja cachear, crie uma classe específica:
 #### Exemplo: Cache de Usuários
 
 ```java
-package br.gov.caixa.[seu-projeto].repository.cache;
+package br.gov.[seu-projeto].repository.cache;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import br.gov.caixa.[seu-projeto].model.Usuario;
+import br.gov.[seu-projeto].model.Usuario;
 import io.quarkus.redis.client.RedisClientName;
 import io.quarkus.redis.datasource.RedisDataSource;
 import jakarta.annotation.Nullable;
@@ -243,11 +243,11 @@ public class UsuarioCache {
 #### Exemplo: Cache de Produtos (com cache geral e específico)
 
 ```java
-package br.gov.caixa.[seu-projeto].repository.cache;
+package br.gov.[seu-projeto].repository.cache;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import br.gov.caixa.[seu-projeto].model.Produto;
+import br.gov.[seu-projeto].model.Produto;
 import io.quarkus.redis.client.RedisClientName;
 import io.quarkus.redis.datasource.RedisDataSource;
 import jakarta.annotation.Nullable;
@@ -309,10 +309,10 @@ public class ProdutoCache {
 Utilize o cache no seu service seguindo o padrão:
 
 ```java
-package br.gov.caixa.[seu-projeto].service;
+package br.gov.[seu-projeto].service;
 
-import br.gov.caixa.[seu-projeto].repository.cache.UsuarioCache;
-import br.gov.caixa.[seu-projeto].model.Usuario;
+import br.gov.[seu-projeto].repository.cache.UsuarioCache;
+import br.gov.[seu-projeto].model.Usuario;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -368,10 +368,10 @@ public class UsuarioService {
 ### Passo 4: Integrar no Resource/Controller
 
 ```java
-package br.gov.caixa.[seu-projeto].resource;
+package br.gov.[seu-projeto].resource;
 
-import br.gov.caixa.[seu-projeto].service.UsuarioService;
-import br.gov.caixa.[seu-projeto].model.Usuario;
+import br.gov.[seu-projeto].service.UsuarioService;
+import br.gov.[seu-projeto].model.Usuario;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -420,7 +420,7 @@ public class UsuarioResource {
 ### Exemplo de Teste para Cache
 
 ```java
-package unit.br.gov.caixa.[seu-projeto].repository.cache;
+package unit.br.gov.[seu-projeto].repository.cache;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -428,9 +428,9 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import br.gov.caixa.[seu-projeto].repository.cache.UsuarioCache;
-import br.gov.caixa.[seu-projeto].repository.cache.RemoteCache;
-import br.gov.caixa.[seu-projeto].model.Usuario;
+import br.gov.[seu-projeto].repository.cache.UsuarioCache;
+import br.gov.[seu-projeto].repository.cache.RemoteCache;
+import br.gov.[seu-projeto].model.Usuario;
 import io.quarkus.redis.datasource.RedisDataSource;
 
 class UsuarioCacheTest {
@@ -575,15 +575,15 @@ public void atualizarUsuario(String id, Usuario usuario) {
 
 ### Verificação do Logger Disponível
 
-Antes de implementar logs de erro, **SEMPRE** verifique se o Logger customizado da Caixa está disponível:
+Antes de implementar logs de erro, **SEMPRE** verifique se o Logger customizado está disponível:
 
 ```java
-import br.gov.caixa.silce.logging.Logger;
+import br.gov.logging.Logger;
 ```
 
 #### Regras de Uso do Logger:
 
-1. **Se o import `br.gov.caixa.silce.logging.Logger` estiver disponível:**
+1. **Se o import `br.gov.logging.Logger` estiver disponível:**
    - Use: `Logger.system().errorf("mensagem", exception, parametros)`
    
 2. **Se o import NÃO estiver disponível:**
@@ -603,7 +603,7 @@ public <T> T getValue(String key, Class<T> clazz) {
         }
         return null;
     } catch (Exception e) {
-        // VERIFICAR SE br.gov.caixa.silce.logging.Logger ESTÁ DISPONÍVEL
+        // VERIFICAR SE br.gov.logging.Logger ESTÁ DISPONÍVEL
         
         // Se disponível, use:
         Logger.system().errorf("Failed to deserialize cache value for key: %s", e, key);
@@ -620,7 +620,7 @@ public void setValue(String key, Object value, long ttlSeconds) {
         String jsonValue = objectMapper.writeValueAsString(value);
         setex(key, jsonValue, ttlSeconds);
     } catch (Exception e) {
-        // VERIFICAR SE br.gov.caixa.silce.logging.Logger ESTÁ DISPONÍVEL
+        // VERIFICAR SE br.gov.logging.Logger ESTÁ DISPONÍVEL
         
         // Se disponível, use:
         Logger.system().errorf("Failed to save cache value for key: %s", e, key);
@@ -637,7 +637,7 @@ public void setValue(String key, Object value, long ttlSeconds) {
 // No início do arquivo, tente importar o Logger customizado
 try {
     // Se este import funcionar, use Logger.system().errorf
-    import br.gov.caixa.silce.logging.Logger;
+    import br.gov.logging.Logger;
 } catch (ImportException e) {
     // Se falhar, use o logger padrão
     import io.quarkus.logging.Log;
@@ -729,7 +729,7 @@ public class RedisHealthCheck implements HealthCheck {
 
 ## 🚀 Exemplo Completo
 
-Você pode encontrar um exemplo completo funcional no projeto `silce-parametros-gestao`, que inclui:
+Você pode encontrar um exemplo completo funcional no projeto, que inclui:
 
 - ✅ Configuração do Redis
 - ✅ Implementação do RemoteCache

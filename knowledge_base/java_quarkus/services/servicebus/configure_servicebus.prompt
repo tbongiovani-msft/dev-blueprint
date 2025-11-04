@@ -1,6 +1,6 @@
 # Service Bus Configuration Guide for Quarkus Projects
 
-This guide provides a comprehensive approach to configure Azure Service Bus in a Quarkus project based on the silce-compra implementation.
+This guide provides a comprehensive approach to configure Azure Service Bus in a Quarkus project based on the implementation.
 
 ## 1. Dependencies
 

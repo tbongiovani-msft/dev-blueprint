@@ -12,9 +12,9 @@ metadata:
     backstage.io/managed-by-location: url:github.com/tbongiovani-msft/dev-blueprint
     sonarqube.org/project-key: sonarqube-produtos4/dev-blueprint
     feedback/type: 'MAIL'
-    feedback/email-to: 'cxnde02@corp.caixa.gov.br'
+    feedback/email-to: 'tbongiovani@microsoft.com'
 spec:
   type: docs
   lifecycle: estavel
-  owner: group:default/g_az_box_silce
-  system: SILCE
+  owner: group:default/g_az_box_tbongiovani
+  system: tbongiovani-blueprint
