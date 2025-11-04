@@ -25,7 +25,8 @@
         "typescript": "^5.0.0"
     },
     "engines": {
-        "node": ">=18.17.0"
+        "node": ">=18.17.0",
+        "_comment": "Minimum version 18.17.0 required for client compatibility. Builds are done on 18.17.0 for maximum compatibility."
     },
     "keywords": [
         "mcp",
