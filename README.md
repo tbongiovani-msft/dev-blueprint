@@ -10,7 +10,7 @@
 
 ### Dependencias
 
-* NodeJS >=18.19.0
+* NodeJS >=18.17.0
 
 
 ### Passo 1: Setup de Authenticação do GitHub

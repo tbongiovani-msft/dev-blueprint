@@ -21,7 +21,7 @@
         "mcp-dev-blueprints": "^1.0.1"
     },
     "devDependencies": {
-        "@types/node": "^18.0.0",
+        "@types/node": "18.17.0",
         "typescript": "^5.0.0"
     },
     "engines": {
