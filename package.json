@@ -15,7 +15,9 @@
         "build:windows": "tsc && xcopy /E /I knowledge_base dist\\knowledge_base\\",
         "build:unix": "tsc && cp -r knowledge_base dist/",
         "copy-knowledge-base": "node -e \"const fs=require('fs');const path=require('path');function copyDir(src,dest){if(!fs.existsSync(dest))fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).forEach(file=>{const srcFile=path.join(src,file);const destFile=path.join(dest,file);if(fs.statSync(srcFile).isDirectory())copyDir(srcFile,destFile);else fs.copyFileSync(srcFile,destFile);});} copyDir('knowledge_base','dist/knowledge_base');\"",
-        "start": "node dist/index.js"
+        "start": "node dist/index.js",
+        "validate:yargs": "node validate-yargs-compatibility.js",
+        "validate:all": "npm run validate:yargs && node validate-node-compatibility.js"
     },
     "dependencies": {
         "mcp-dev-blueprints": "^1.0.1"
@@ -47,5 +49,8 @@
     },
     "publishConfig": {
         "access": "public"
+    },
+    "overrides": {
+        "yargs": "17.7.2"
     }
 }
