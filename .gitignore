@@ -137,6 +137,7 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+<<<<<<< HEAD
 
 # Dev Only Local Files
 dev_kb/
@@ -144,3 +145,5 @@ dev_kb/
 # Semantic Release
 .nyc_output
 coverage
+=======
+>>>>>>> d34fbe9ee36663cd4c0c814481f6654db2290b8e
