@@ -18,12 +18,7 @@
         "start": "node dist/index.js"
     },
     "dependencies": {
-        "@semantic-release/changelog": "^6.0.3",
-        "@semantic-release/git": "^10.0.1",
-        "@semantic-release/github": "^9.2.6",
-        "@semantic-release/npm": "^11.0.3",
-        "mcp-dev-blueprints": "^1.0.1",
-        "semantic-release": "^22.0.12"
+        "mcp-dev-blueprints": "^1.0.1"
     },
     "devDependencies": {
         "@types/node": "^18.0.0",
