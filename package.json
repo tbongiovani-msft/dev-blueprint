@@ -11,8 +11,10 @@
         "dist"
     ],
     "scripts": {
-        "build": "tsc && xcopy /E /I knowledge_base dist\\knowledge_base\\",
+        "build": "tsc && npm run copy-knowledge-base",
+        "build:windows": "tsc && xcopy /E /I knowledge_base dist\\knowledge_base\\",
         "build:unix": "tsc && cp -r knowledge_base dist/",
+        "copy-knowledge-base": "node -e \"const fs=require('fs');const path=require('path');function copyDir(src,dest){if(!fs.existsSync(dest))fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).forEach(file=>{const srcFile=path.join(src,file);const destFile=path.join(dest,file);if(fs.statSync(srcFile).isDirectory())copyDir(srcFile,destFile);else fs.copyFileSync(srcFile,destFile);});} copyDir('knowledge_base','dist/knowledge_base');\"",
         "start": "node dist/index.js"
     },
     "dependencies": {
